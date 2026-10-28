@@ -24,4 +24,46 @@
     </form>
   </div>
 </div>
+
+<div class="card mt-4 border-danger">
+  <div class="card-header bg-danger-subtle text-danger fw-bold">
+    <i class="bi bi-exclamation-octagon-fill"></i> Khu vực nguy hiểm
+  </div>
+  <div class="card-body">
+    <h6 class="mb-1">Xóa toàn bộ dữ liệu nhân sự</h6>
+    <p class="text-muted mb-3">
+      Thao tác này sẽ <strong>xóa vĩnh viễn</strong> toàn bộ {{ total_personnel }} hồ sơ ở tất cả các danh mục
+      (bao gồm cả Hồ sơ lưu) và các file minh chứng khen thưởng đính kèm. Tài khoản đăng nhập sẽ không bị ảnh hưởng.
+      Hành động này <strong>không thể hoàn tác</strong>.
+    </p>
+    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#wipeDataModal">
+      <i class="bi bi-trash3-fill"></i> Xóa hết dữ liệu nhân sự
+    </button>
+  </div>
+</div>
+
+<div class="modal fade" id="wipeDataModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('settings.wipe_data') }}">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title"><i class="bi bi-exclamation-octagon-fill"></i> Xác nhận xóa toàn bộ dữ liệu</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Bạn sắp xóa vĩnh viễn <strong>{{ total_personnel }}</strong> hồ sơ nhân sự khỏi hệ thống.
+            Để xác nhận, vui lòng nhập chính xác cụm từ sau:
+          </p>
+          <p class="fw-bold text-danger user-select-all">{{ confirm_phrase }}</p>
+          <input type="text" name="confirm_text" class="form-control" placeholder="Nhập cụm từ xác nhận..." autocomplete="off" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill"></i> Xóa vĩnh viễn</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

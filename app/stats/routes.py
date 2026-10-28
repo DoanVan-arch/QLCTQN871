@@ -58,6 +58,8 @@ def index():
     by_ethnicity = _build_breakdown(all_items, "ethnicity")
     by_education = _build_breakdown(all_items, "education_level")
     by_school = _build_breakdown(all_items, "school_name")
+    by_hometown = _build_breakdown(all_items, "hometown")
+    by_major = _build_breakdown(all_items, "major")
 
     party_official = sum(1 for p in all_items if p.is_official_party_member)
     party_probationary = sum(1 for p in all_items if p.is_probationary_party_member)
@@ -75,6 +77,9 @@ def index():
 
     # Top truong hoc nhieu hoc vien nhat
     top_schools = list(by_school.items())[:15]
+    # Top que quan va chuyen nganh nhieu nguoi nhat
+    top_hometowns = list(by_hometown.items())[:15]
+    top_majors = list(by_major.items())[:15]
 
     # --- Canh bao tong hop: thang quan ham / chuyen Dang chinh thuc / sap ra truong ---
     alerts = collect_alerts(today=date.today())
@@ -155,6 +160,10 @@ def index():
         by_education=by_education,
         by_school=by_school,
         top_schools=top_schools,
+        by_hometown=by_hometown,
+        top_hometowns=top_hometowns,
+        by_major=by_major,
+        top_majors=top_majors,
         category_education_matrix=category_education_matrix,
         education_level_choices=EDUCATION_LEVEL_CHOICES,
         party_official=party_official,

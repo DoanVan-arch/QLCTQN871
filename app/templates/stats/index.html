@@ -261,6 +261,33 @@
   </div>
 </div>
 
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-geo-alt-fill"></i> Theo quê quán (top 15)</div>
+      <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
+        {% for label, count in top_hometowns %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Chưa có dữ liệu.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-journal-code"></i> Theo chuyên ngành (top 15)</div>
+      <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
+        {% for label, count in top_majors %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Chưa có dữ liệu.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
 
 <div class="card mb-3">
   <div class="card-header bg-white"><i class="bi bi-search"></i> Tìm kiếm / Lọc nâng cao toàn bộ nhân sự</div>
