@@ -252,7 +252,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-lg-6">
+  <div class="col-lg-4">
     <div class="card h-100">
       <div class="card-header bg-white"><i class="bi bi-geo-alt-fill"></i> Theo tỉnh/thành quê quán (top 15)</div>
       <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
@@ -264,7 +264,19 @@
       </ul>
     </div>
   </div>
-  <div class="col-lg-6">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-house-door-fill"></i> Theo tỉnh/thành nơi ở (top 15)</div>
+      <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
+        {% for label, count in top_residences %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Chưa có dữ liệu.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
     <div class="card h-100">
       <div class="card-header bg-white"><i class="bi bi-journal-code"></i> Theo chuyên ngành (top 15)</div>
       <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
@@ -351,9 +363,14 @@
           <th>Trạng thái</th>
         </tr>
         <tr class="excel-filter-row">
-          {% for i in range(8) %}
-          <th data-col="{{ i }}"></th>
-          {% endfor %}
+          <th data-col="0" data-kind="text"></th>
+          <th data-col="1" data-kind="multiselect"></th>
+          <th data-col="2" data-kind="multiselect"></th>
+          <th data-col="3" data-kind="date"></th>
+          <th data-col="4" data-kind="date"></th>
+          <th data-col="5" data-kind="date"></th>
+          <th data-col="6" data-kind="date"></th>
+          <th data-col="7" data-kind="multiselect"></th>
         </tr>
       </thead>
       <tbody>

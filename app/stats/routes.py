@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from datetime import date
 
 from flask import render_template, request
@@ -42,27 +43,25 @@ def _build_breakdown(items, attr, label_default="Chưa cập nhật"):
     return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
 
 
-_PROVINCE_PREFIXES = ("Tỉnh ", "Thành phố ", "TP.", "TP ")
+_PROVINCE_PREFIX_RE = re.compile(r"^(tỉnh|thành phố|tp\.?)\s*", re.IGNORECASE)
 
 
-def _extract_province(hometown):
-    """Lay phan tinh/thanh pho tu chuoi que quan (vd: 'Xã A, Huyện B, Tỉnh Nam Định'
-    -> 'Nam Định'). Neu khong tach duoc theo dau phay thi tra ve nguyen chuoi."""
-    if not hometown:
+def _extract_province(address):
+    """Lay phan tinh/thanh pho tu chuoi dia chi (que quan hoac noi o), vd:
+    'Xã A, Huyện B, Tỉnh Nam Định' -> 'Nam Định'. Tu dong bo tien to
+    'Tỉnh'/'Thành phố'/'TP' o dau neu co (khong phan biet hoa/thuong)."""
+    if not address:
         return None
-    parts = [p.strip() for p in hometown.split(",") if p.strip()]
-    province = parts[-1] if parts else hometown.strip()
-    for prefix in _PROVINCE_PREFIXES:
-        if province.startswith(prefix):
-            province = province[len(prefix):].strip()
-            break
+    parts = [p.strip() for p in address.split(",") if p.strip()]
+    province = parts[-1] if parts else address.strip()
+    province = _PROVINCE_PREFIX_RE.sub("", province).strip()
     return province or None
 
 
-def _build_province_breakdown(items, label_default="Chưa cập nhật"):
+def _build_province_breakdown(items, attr="hometown", label_default="Chưa cập nhật"):
     counts = {}
     for p in items:
-        province = _extract_province(p.hometown) or label_default
+        province = _extract_province(getattr(p, attr, None)) or label_default
         counts[province] = counts.get(province, 0) + 1
     return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
 
@@ -82,7 +81,8 @@ def index():
     by_ethnicity = _build_breakdown(all_items, "ethnicity")
     by_education = _build_breakdown(all_items, "education_level")
     by_school = _build_breakdown(all_items, "school_name")
-    by_hometown = _build_province_breakdown(all_items)
+    by_hometown = _build_province_breakdown(all_items, attr="hometown")
+    by_residence = _build_province_breakdown(all_items, attr="current_residence")
     by_major = _build_breakdown(all_items, "major")
 
     party_official = sum(1 for p in all_items if p.is_official_party_member)
@@ -101,8 +101,9 @@ def index():
 
     # Top truong hoc nhieu hoc vien nhat
     top_schools = list(by_school.items())[:15]
-    # Top tinh/thanh (que quan) va chuyen nganh nhieu nguoi nhat
+    # Top tinh/thanh (que quan, noi o) va chuyen nganh nhieu nguoi nhat
     top_hometowns = list(by_hometown.items())[:15]
+    top_residences = list(by_residence.items())[:15]
     top_majors = list(by_major.items())[:15]
 
     # --- Canh bao tong hop: thang quan ham / chuyen Dang chinh thuc / sap ra truong ---
@@ -185,6 +186,8 @@ def index():
         top_schools=top_schools,
         by_hometown=by_hometown,
         top_hometowns=top_hometowns,
+        by_residence=by_residence,
+        top_residences=top_residences,
         by_major=by_major,
         top_majors=top_majors,
         category_education_matrix=category_education_matrix,

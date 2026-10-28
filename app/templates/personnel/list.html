@@ -131,8 +131,15 @@
           <th></th>
           {% endif %}
           {% set col_offset = 1 if current_user.can_edit else 0 %}
+          {% set free_text_fields = ['full_name', 'phone', 'current_residence', 'hometown'] %}
           {% for field, label, kind in visible_fields %}
-          <th data-col="{{ loop.index0 + col_offset }}"></th>
+          {% if kind == 'date' %}
+          <th data-col="{{ loop.index0 + col_offset }}" data-kind="date"></th>
+          {% elif field in free_text_fields %}
+          <th data-col="{{ loop.index0 + col_offset }}" data-kind="text"></th>
+          {% else %}
+          <th data-col="{{ loop.index0 + col_offset }}" data-kind="multiselect"></th>
+          {% endif %}
           {% endfor %}
           <th></th>
           <th></th>

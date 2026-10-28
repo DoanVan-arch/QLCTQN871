@@ -309,11 +309,58 @@ body.sidebar-collapsed .sidebar-brand {
 .excel-filter-row th {
   background-color: #f7f9f6;
   padding: 0.25rem 0.4rem;
+  vertical-align: top;
 }
 
 .excel-filter-row .col-filter {
   font-size: 0.8rem;
   min-width: 90px;
+}
+
+.excel-date-range {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.excel-date-range input {
+  min-width: 118px;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.excel-multiselect {
+  position: relative;
+}
+
+.excel-multiselect-btn {
+  font-size: 0.8rem;
+  min-width: 100px;
+}
+
+.excel-multiselect-menu {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  padding: 0.6rem;
+  max-width: 280px;
+}
+
+.excel-multiselect-menu.show {
+  display: block;
+}
+
+.excel-multiselect-list {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.excel-multiselect-list .form-check {
+  padding-left: 1.6rem;
 }
 
 .excel-table tbody tr:hover {
