@@ -130,8 +130,9 @@
           {% if current_user.can_edit %}
           <th></th>
           {% endif %}
+          {% set col_offset = 1 if current_user.can_edit else 0 %}
           {% for field, label, kind in visible_fields %}
-          <th><input type="text" class="form-control form-control-sm col-filter" data-col="{{ loop.index0 }}" placeholder="Lọc..."></th>
+          <th data-col="{{ loop.index0 + col_offset }}"></th>
           {% endfor %}
           <th></th>
           <th></th>
@@ -215,41 +216,13 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/excel-filter.js') }}"></script>
 <script>
 (function () {
   const table = document.getElementById('personnelTable');
   if (!table) return;
-  const filters = table.querySelectorAll('.col-filter');
-  const tbody = table.querySelector('tbody');
-  function applyFilters() {
-    const activeFilters = Array.from(filters)
-      .map((input) => ({ col: parseInt(input.dataset.col, 10), value: input.value.trim().toLowerCase() }))
-      .filter((f) => f.value);
-    Array.from(tbody.querySelectorAll('tr')).forEach((row) => {
-      const cells = row.children;
-      const match = activeFilters.every((f) => {
-        const cell = cells[f.col];
-        if (!cell) return true;
-        return cell.textContent.toLowerCase().includes(f.value);
-      });
-      row.style.display = match ? '' : 'none';
-    });
-  }
-  filters.forEach((input) => input.addEventListener('input', applyFilters));
 
-  const filterRow = table.querySelector('.excel-filter-row');
-  const toggleBtn = document.getElementById('toggleFilterRowBtn');
-  const storageKey = 'personnelTable_filterRowHidden';
-  function applyVisibility() {
-    const hidden = localStorage.getItem(storageKey) === '1';
-    filterRow.style.display = hidden ? 'none' : '';
-  }
-  applyVisibility();
-  toggleBtn.addEventListener('click', () => {
-    const hiddenNow = filterRow.style.display === 'none';
-    filterRow.style.display = hiddenNow ? '' : 'none';
-    localStorage.setItem(storageKey, hiddenNow ? '0' : '1');
-  });
+  initExcelFilterTable('personnelTable');
 
   const selectAll = document.getElementById('selectAllCheckbox');
   const rowCheckboxes = table.querySelectorAll('.row-checkbox');

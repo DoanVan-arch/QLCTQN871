@@ -88,12 +88,11 @@ CATEGORY_SINGULAR = {
 }
 
 EDUCATION_LEVEL_CHOICES = [
-    "Trung cấp",
-    "Cao đẳng",
-    "Đại học",
-    "Sau đại học (Thạc sĩ)",
-    "Sau đại học (Tiến sĩ)",
-    "Khác",
+    "NCS (Nghiên cứu sinh)",
+    "CH (Cao học)",
+    "ĐH (Đại học)",
+    "VB2 (Văn bằng 2)",
+    "CK2 (Chuyên khoa 2)",
 ]
 
 # --- Danh sach truong hien thi trong bang danh sach (dung cho che do Day du / Rut gon) ---

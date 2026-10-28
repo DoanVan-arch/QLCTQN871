@@ -185,17 +185,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-header bg-white"><i class="bi bi-journal-bookmark"></i> Theo tôn giáo</div>
-      <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
-        {% for label, count in by_religion.items() %}
-        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
-  <div class="col-lg-4">
+  <div class="col-lg-6">
     <div class="card h-100">
       <div class="card-header bg-white"><i class="bi bi-people-fill"></i> Theo dân tộc</div>
       <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
@@ -205,7 +195,7 @@
       </ul>
     </div>
   </div>
-  <div class="col-lg-4">
+  <div class="col-lg-6">
     <div class="card h-100">
       <div class="card-header bg-white"><i class="bi bi-mortarboard"></i> Theo bậc học</div>
       <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
@@ -264,7 +254,7 @@
 <div class="row g-3 mb-4">
   <div class="col-lg-6">
     <div class="card h-100">
-      <div class="card-header bg-white"><i class="bi bi-geo-alt-fill"></i> Theo quê quán (top 15)</div>
+      <div class="card-header bg-white"><i class="bi bi-geo-alt-fill"></i> Theo tỉnh/thành quê quán (top 15)</div>
       <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
         {% for label, count in top_hometowns %}
         <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
@@ -362,7 +352,7 @@
         </tr>
         <tr class="excel-filter-row">
           {% for i in range(8) %}
-          <th><input type="text" class="form-control form-control-sm col-filter" data-col="{{ i }}" placeholder="Lọc..."></th>
+          <th data-col="{{ i }}"></th>
           {% endfor %}
         </tr>
       </thead>
@@ -407,41 +397,10 @@
 </nav>
 {% endif %}
 
+<script src="{{ url_for('static', filename='js/excel-filter.js') }}"></script>
 <script>
 (function () {
-  const table = document.getElementById('statsTable');
-  if (!table) return;
-  const filters = table.querySelectorAll('.col-filter');
-  const tbody = table.querySelector('tbody');
-  function applyFilters() {
-    const activeFilters = Array.from(filters)
-      .map((input) => ({ col: parseInt(input.dataset.col, 10), value: input.value.trim().toLowerCase() }))
-      .filter((f) => f.value);
-    Array.from(tbody.querySelectorAll('tr')).forEach((row) => {
-      const cells = row.children;
-      const match = activeFilters.every((f) => {
-        const cell = cells[f.col];
-        if (!cell) return true;
-        return cell.textContent.toLowerCase().includes(f.value);
-      });
-      row.style.display = match ? '' : 'none';
-    });
-  }
-  filters.forEach((input) => input.addEventListener('input', applyFilters));
-
-  const filterRow = table.querySelector('.excel-filter-row');
-  const toggleBtn = document.getElementById('toggleFilterRowBtn');
-  const storageKey = 'statsTable_filterRowHidden';
-  function applyVisibility() {
-    const hidden = localStorage.getItem(storageKey) === '1';
-    filterRow.style.display = hidden ? 'none' : '';
-  }
-  applyVisibility();
-  toggleBtn.addEventListener('click', () => {
-    const hiddenNow = filterRow.style.display === 'none';
-    filterRow.style.display = hiddenNow ? '' : 'none';
-    localStorage.setItem(storageKey, hiddenNow ? '0' : '1');
-  });
+  initExcelFilterTable('statsTable');
 })();
 </script>
 {% endblock %}

@@ -42,6 +42,31 @@ def _build_breakdown(items, attr, label_default="Chưa cập nhật"):
     return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
 
 
+_PROVINCE_PREFIXES = ("Tỉnh ", "Thành phố ", "TP.", "TP ")
+
+
+def _extract_province(hometown):
+    """Lay phan tinh/thanh pho tu chuoi que quan (vd: 'Xã A, Huyện B, Tỉnh Nam Định'
+    -> 'Nam Định'). Neu khong tach duoc theo dau phay thi tra ve nguyen chuoi."""
+    if not hometown:
+        return None
+    parts = [p.strip() for p in hometown.split(",") if p.strip()]
+    province = parts[-1] if parts else hometown.strip()
+    for prefix in _PROVINCE_PREFIXES:
+        if province.startswith(prefix):
+            province = province[len(prefix):].strip()
+            break
+    return province or None
+
+
+def _build_province_breakdown(items, label_default="Chưa cập nhật"):
+    counts = {}
+    for p in items:
+        province = _extract_province(p.hometown) or label_default
+        counts[province] = counts.get(province, 0) + 1
+    return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
+
+
 @bp.route("/")
 @login_required
 def index():
@@ -54,11 +79,10 @@ def index():
 
     by_rank = _build_breakdown(all_items, "rank")
     by_gender = _build_breakdown(all_items, "gender")
-    by_religion = _build_breakdown(all_items, "religion")
     by_ethnicity = _build_breakdown(all_items, "ethnicity")
     by_education = _build_breakdown(all_items, "education_level")
     by_school = _build_breakdown(all_items, "school_name")
-    by_hometown = _build_breakdown(all_items, "hometown")
+    by_hometown = _build_province_breakdown(all_items)
     by_major = _build_breakdown(all_items, "major")
 
     party_official = sum(1 for p in all_items if p.is_official_party_member)
@@ -77,7 +101,7 @@ def index():
 
     # Top truong hoc nhieu hoc vien nhat
     top_schools = list(by_school.items())[:15]
-    # Top que quan va chuyen nganh nhieu nguoi nhat
+    # Top tinh/thanh (que quan) va chuyen nganh nhieu nguoi nhat
     top_hometowns = list(by_hometown.items())[:15]
     top_majors = list(by_major.items())[:15]
 
@@ -155,7 +179,6 @@ def index():
         by_category=by_category,
         by_rank=by_rank,
         by_gender=by_gender,
-        by_religion=by_religion,
         by_ethnicity=by_ethnicity,
         by_education=by_education,
         by_school=by_school,
