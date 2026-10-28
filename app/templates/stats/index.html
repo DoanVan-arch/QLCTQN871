@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+{% block title %}Thống kê{% endblock %}
+
+{% macro sort_link(col, label) -%}
+  {% set new_dir = 'desc' if (sort_by == col and sort_dir == 'asc') else 'asc' %}
+  <a class="table-sort-link" href="{{ url_for('stats.index', q=q, category=category_filter, rank=rank_filter, gender=gender_filter, rank_status=rank_status_filter, party_status=party_status_filter, sort_by=col, sort_dir=new_dir) }}">
+    {{ label }}
+    {% if sort_by == col %}<i class="bi bi-caret-{{ 'up' if sort_dir == 'asc' else 'down' }}-fill small"></i>{% endif %}
+  </a>
+{%- endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h3 class="mb-0"><i class="bi bi-bar-chart-line"></i> Thống kê tổng hợp</h3>
+  <button type="button" class="btn btn-sm btn-outline-dark" id="toggleFilterRowBtn">
+    <i class="bi bi-funnel"></i> Ẩn/hiện bộ lọc
+  </button>
+</div>
+
+<div class="card mb-4" id="canh-bao">
+  <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-triangle-fill text-danger"></i> Cảnh báo tổng hợp</span>
+    <span class="badge text-bg-danger">{{ alerts.total }}</span>
+  </div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="card card-stat bg-red h-100">
+          <div class="card-body">
+            <div class="stat-number"><i class="bi bi-stars"></i> {{ alerts.rank_total }}</div>
+            <div>Sắp/Quá hạn thăng quân hàm</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-stat bg-amber h-100">
+          <div class="card-body">
+            <div class="stat-number"><i class="bi bi-flag-fill"></i> {{ alerts.party_total }}</div>
+            <div>Sắp/Quá hạn chuyển Đảng chính thức</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-stat bg-purple h-100">
+          <div class="card-body">
+            <div class="stat-number"><i class="bi bi-mortarboard-fill"></i> {{ alerts.graduation_total }}</div>
+            <div>Sắp/Đã đến ngày ra trường</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs" id="alertTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#alert-rank" type="button">
+          <i class="bi bi-stars"></i> Thăng quân hàm <span class="badge text-bg-secondary">{{ alerts.rank_total }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#alert-party" type="button">
+          <i class="bi bi-flag-fill"></i> Chuyển Đảng CT <span class="badge text-bg-secondary">{{ alerts.party_total }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#alert-graduation" type="button">
+          <i class="bi bi-mortarboard-fill"></i> Sắp ra trường <span class="badge text-bg-secondary">{{ alerts.graduation_total }}</span>
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content border border-top-0 rounded-bottom p-0">
+      <div class="tab-pane fade show active" id="alert-rank">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light"><tr><th>Họ và tên</th><th>Danh mục</th><th>Cấp bậc hiện tại</th><th>Dự kiến lên</th><th>Thời điểm</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              {% for item in alerts.rank_alerts %}
+              <tr>
+                <td><a href="{{ url_for('personnel.view', category=item.person.category, person_id=item.person.id) }}">{{ item.person.full_name }}</a></td>
+                <td>{{ category_labels.get(item.person.category, item.person.category) }}</td>
+                <td>{{ item.person.rank or '' }}</td>
+                <td>{{ item.forecast.next_rank }}</td>
+                <td>{{ item.forecast.expected_date.strftime('%d/%m/%Y') if item.forecast.expected_date }}</td>
+                <td>{% if item.forecast.status == 'overdue' %}<span class="badge badge-status-overdue">Quá hạn</span>{% else %}<span class="badge badge-status-upcoming">Sắp đến hạn</span>{% endif %}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-center text-muted py-3">Không có cảnh báo.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="alert-party">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light"><tr><th>Họ và tên</th><th>Danh mục</th><th>TG vào Đảng (dự bị)</th><th>Dự kiến chính thức</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              {% for item in alerts.party_alerts %}
+              <tr>
+                <td><a href="{{ url_for('personnel.view', category=item.person.category, person_id=item.person.id) }}">{{ item.person.full_name }}</a></td>
+                <td>{{ category_labels.get(item.person.category, item.person.category) }}</td>
+                <td>{{ item.person.party_join_date.strftime('%d/%m/%Y') if item.person.party_join_date }}</td>
+                <td>{{ item.forecast.expected_date.strftime('%d/%m/%Y') if item.forecast.expected_date }}</td>
+                <td>{% if item.forecast.status == 'overdue' %}<span class="badge badge-status-overdue">Quá hạn</span>{% else %}<span class="badge badge-status-upcoming">Sắp đến hạn</span>{% endif %}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-center text-muted py-3">Không có cảnh báo.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="alert-graduation">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light"><tr><th>Họ và tên</th><th>Danh mục</th><th>Trường theo học</th><th>Ngày dự kiến ra trường</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              {% for item in alerts.graduation_alerts %}
+              <tr>
+                <td><a href="{{ url_for('personnel.view', category=item.person.category, person_id=item.person.id) }}">{{ item.person.full_name }}</a></td>
+                <td>{{ category_labels.get(item.person.category, item.person.category) }}</td>
+                <td>{{ item.person.school_name or '' }}</td>
+                <td>{{ item.forecast.expected_date.strftime('%d/%m/%Y') if item.forecast.expected_date }}</td>
+                <td>{% if item.forecast.status == 'overdue' %}<span class="badge badge-status-overdue">Đã qua ngày ra trường</span>{% else %}<span class="badge badge-status-upcoming">Sắp ra trường</span>{% endif %}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-center text-muted py-3">Không có cảnh báo.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-2 col-sm-4">
+    <div class="card card-stat bg-green"><div class="card-body"><div class="stat-number">{{ total_all }}</div><div>Tổng hồ sơ</div></div></div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="card card-stat bg-teal"><div class="card-body"><div class="stat-number">{{ party_official }}</div><div>Đảng viên CT</div></div></div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="card card-stat bg-amber"><div class="card-body"><div class="stat-number">{{ party_probationary }}</div><div>Đảng viên dự bị</div></div></div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="card card-stat bg-purple"><div class="card-body"><div class="stat-number">{{ youth_union }}</div><div>Đoàn viên</div></div></div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="card card-stat bg-blue"><div class="card-body"><div class="stat-number">{{ sympathy_class }}</div><div>Đã học cảm tình Đảng</div></div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-folder2-open"></i> Theo danh mục</div>
+      <ul class="list-group list-group-flush">
+        {% for label, count in by_category.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-stars"></i> Theo cấp bậc</div>
+      <ul class="list-group list-group-flush" style="max-height: 260px; overflow-y:auto;">
+        {% for label, count in by_rank.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-gender-ambiguous"></i> Theo giới tính</div>
+      <ul class="list-group list-group-flush">
+        {% for label, count in by_gender.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-journal-bookmark"></i> Theo tôn giáo</div>
+      <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
+        {% for label, count in by_religion.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-people-fill"></i> Theo dân tộc</div>
+      <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
+        {% for label, count in by_ethnicity.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-mortarboard"></i> Theo bậc học</div>
+      <ul class="list-group list-group-flush" style="max-height: 220px; overflow-y:auto;">
+        {% for label, count in by_education.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-mortarboard"></i> Theo trường học (top 15)</div>
+      <ul class="list-group list-group-flush" style="max-height: 320px; overflow-y:auto;">
+        {% for label, count in top_schools %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ label }}</span><span class="badge text-bg-secondary">{{ count }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Chưa có dữ liệu.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-grid-3x3"></i> Bậc học theo từng danh mục (trường học)</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Danh mục</th>
+              {% for level in education_level_choices %}
+              <th class="text-center">{{ level }}</th>
+              {% endfor %}
+              <th class="text-center">Tổng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in category_education_matrix %}
+            <tr>
+              <td>{{ row.label }}</td>
+              {% for level in education_level_choices %}
+              <td class="text-center">{{ row[level] }}</td>
+              {% endfor %}
+              <td class="text-center fw-bold">{{ row.total }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="card mb-3">
+  <div class="card-header bg-white"><i class="bi bi-search"></i> Tìm kiếm / Lọc nâng cao toàn bộ nhân sự</div>
+  <div class="card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-2">
+        <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="Họ tên, SĐT, CCCD...">
+      </div>
+      <div class="col-md-2">
+        <select name="category" class="form-select">
+          <option value="">-- Danh mục --</option>
+          {% for value, label in category_choices %}
+          <option value="{{ value }}" {% if category_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="rank" class="form-select">
+          <option value="">-- Cấp bậc --</option>
+          {% for r in rank_choices %}
+          <option value="{{ r }}" {% if rank_filter == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="gender" class="form-select">
+          <option value="">-- Giới tính --</option>
+          {% for g in gender_choices %}
+          <option value="{{ g }}" {% if gender_filter == g %}selected{% endif %}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="rank_status" class="form-select">
+          <option value="">-- TT thăng cấp --</option>
+          <option value="overdue" {% if rank_status_filter == 'overdue' %}selected{% endif %}>Quá hạn</option>
+          <option value="upcoming" {% if rank_status_filter == 'upcoming' %}selected{% endif %}>Sắp đến hạn</option>
+          <option value="ok" {% if rank_status_filter == 'ok' %}selected{% endif %}>Còn thời gian</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="party_status" class="form-select">
+          <option value="">-- TT chuyển Đảng CT --</option>
+          <option value="overdue" {% if party_status_filter == 'overdue' %}selected{% endif %}>Quá hạn</option>
+          <option value="upcoming" {% if party_status_filter == 'upcoming' %}selected{% endif %}>Sắp đến hạn</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Tìm kiếm</button>
+        <a href="{{ url_for('stats.index') }}" class="btn btn-outline-secondary">Đặt lại</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-white d-flex justify-content-between">
+    <span>Kết quả: {{ total_rows }} hồ sơ</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 excel-table" id="statsTable">
+      <thead class="table-light">
+        <tr>
+          <th>{{ sort_link('full_name', 'Họ và tên') }}</th>
+          <th>{{ sort_link('category', 'Danh mục') }}</th>
+          <th>{{ sort_link('rank', 'Cấp bậc') }}</th>
+          <th>{{ sort_link('rank_date', 'TG nhận cấp bậc') }}</th>
+          <th>{{ sort_link('rank_expected_date', 'Dự kiến thăng cấp') }}</th>
+          <th>{{ sort_link('party_join_date', 'TG vào Đảng') }}</th>
+          <th>{{ sort_link('party_expected_date', 'Dự kiến CT Đảng') }}</th>
+          <th>Trạng thái</th>
+        </tr>
+        <tr class="excel-filter-row">
+          {% for i in range(8) %}
+          <th><input type="text" class="form-control form-control-sm col-filter" data-col="{{ i }}" placeholder="Lọc..."></th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><a href="{{ url_for('personnel.view', category=r.person.category, person_id=r.person.id) }}">{{ r.person.full_name }}</a></td>
+          <td>{{ category_labels.get(r.person.category, r.person.category) }}</td>
+          <td>{{ r.person.rank or '' }}</td>
+          <td>{{ r.person.rank_date.strftime('%d/%m/%Y') if r.person.rank_date else '' }}</td>
+          <td>
+            {% if r.rank_forecast.expected_date %}
+              {{ r.rank_forecast.expected_date.strftime('%d/%m/%Y') }} ({{ r.rank_forecast.next_rank }})
+            {% endif %}
+          </td>
+          <td>{{ r.person.party_join_date.strftime('%d/%m/%Y') if r.person.party_join_date else '' }}</td>
+          <td>{{ r.party_forecast.expected_date.strftime('%d/%m/%Y') if r.party_forecast.expected_date else '' }}</td>
+          <td>
+            {% if r.rank_forecast.status == 'overdue' %}<span class="badge badge-status-overdue">Quá hạn CB</span>{% endif %}
+            {% if r.rank_forecast.status == 'upcoming' %}<span class="badge badge-status-upcoming">Sắp lên CB</span>{% endif %}
+            {% if r.party_forecast.status == 'overdue' %}<span class="badge badge-status-overdue">Quá hạn Đảng</span>{% endif %}
+            {% if r.party_forecast.status == 'upcoming' %}<span class="badge badge-status-upcoming">Sắp CT Đảng</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Không có dữ liệu phù hợp.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    {% for page_num in range(1, total_pages + 1) %}
+    <li class="page-item {% if page_num == page %}active{% endif %}">
+      <a class="page-link" href="{{ url_for('stats.index', q=q, category=category_filter, rank=rank_filter, gender=gender_filter, rank_status=rank_status_filter, party_status=party_status_filter, sort_by=sort_by, sort_dir=sort_dir, page=page_num) }}">{{ page_num }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+
+<script>
+(function () {
+  const table = document.getElementById('statsTable');
+  if (!table) return;
+  const filters = table.querySelectorAll('.col-filter');
+  const tbody = table.querySelector('tbody');
+  function applyFilters() {
+    const activeFilters = Array.from(filters)
+      .map((input) => ({ col: parseInt(input.dataset.col, 10), value: input.value.trim().toLowerCase() }))
+      .filter((f) => f.value);
+    Array.from(tbody.querySelectorAll('tr')).forEach((row) => {
+      const cells = row.children;
+      const match = activeFilters.every((f) => {
+        const cell = cells[f.col];
+        if (!cell) return true;
+        return cell.textContent.toLowerCase().includes(f.value);
+      });
+      row.style.display = match ? '' : 'none';
+    });
+  }
+  filters.forEach((input) => input.addEventListener('input', applyFilters));
+
+  const filterRow = table.querySelector('.excel-filter-row');
+  const toggleBtn = document.getElementById('toggleFilterRowBtn');
+  const storageKey = 'statsTable_filterRowHidden';
+  function applyVisibility() {
+    const hidden = localStorage.getItem(storageKey) === '1';
+    filterRow.style.display = hidden ? 'none' : '';
+  }
+  applyVisibility();
+  toggleBtn.addEventListener('click', () => {
+    const hiddenNow = filterRow.style.display === 'none';
+    filterRow.style.display = hiddenNow ? '' : 'none';
+    localStorage.setItem(storageKey, hiddenNow ? '0' : '1');
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock %}
+{% block content %}
+<div class="login-wrapper">
+  <div class="card login-card shadow-lg">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <img src="{{ url_for('static', filename='img/emblem.jpg') }}" alt="Huy hiệu" class="login-emblem mb-3">
+        <h4 class="mt-2 mb-0 fw-bold">QLCT Quân nhân</h4>
+        <small class="text-muted">Đoàn 871</small>
+      </div>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+          {{ form.username.label(class_="form-label") }}
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+            {{ form.username(class_="form-control", placeholder="Nhập tên đăng nhập", autofocus=true) }}
+          </div>
+        </div>
+        <div class="mb-4">
+          {{ form.password.label(class_="form-label") }}
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+            {{ form.password(class_="form-control", placeholder="Nhập mật khẩu") }}
+          </div>
+        </div>
+        {{ form.submit(class_="btn btn-success w-100 py-2") }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

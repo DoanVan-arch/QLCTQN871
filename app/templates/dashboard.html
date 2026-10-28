@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-speedometer2"></i> Tổng quan</h3>
+
+<div class="card mb-4">
+  <div class="card-header bg-white"><i class="bi bi-grid-3x3-gap"></i> Thống kê tổng hợp theo danh mục quân số</div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Chỉ tiêu</th>
+          {% for value, label in dashboard_categories %}
+          <th class="text-center">{{ label }}</th>
+          {% endfor %}
+          <th class="text-center">Tổng cộng</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary_rows %}
+        <tr>
+          <td><i class="bi {{ row.icon }} me-1"></i> {{ row.label }}</td>
+          {% for value, label in dashboard_categories %}
+          <td class="text-center">{{ row.values[value] }}</td>
+          {% endfor %}
+          <td class="text-center fw-bold">{{ row.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="card card-stat bg-green">
+      <div class="card-body">
+        <div class="stat-number">{{ total_all }}</div>
+        <div>Tổng số hồ sơ quản lý</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card card-stat bg-blue">
+      <div class="card-body">
+        <div class="stat-number">{{ party_members_count }}</div>
+        <div>Đảng viên (đang tại ngũ)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card card-stat bg-teal">
+      <div class="card-body">
+        <div class="stat-number">{{ official_party_count }}</div>
+        <div>Đảng viên chính thức</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card card-stat bg-amber">
+      <div class="card-body">
+        <div class="stat-number">{{ probationary_party_count }}</div>
+        <div>Đảng viên dự bị</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card card-stat bg-purple">
+      <div class="card-body">
+        <div class="stat-number">{{ youth_union_count }}</div>
+        <div>Đoàn viên</div>
+      </div>
+    </div>
+  </div>
+  {% for value, label in nav_categories %}
+  <div class="col-md-3 col-sm-6">
+    <a href="{{ url_for('personnel.index', category=value) }}" class="text-decoration-none">
+      <div class="card card-stat bg-red">
+        <div class="card-body">
+          <div class="stat-number">{{ category_counts.get(value, 0) }}</div>
+          <div>{{ label }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-bar-chart"></i> Phân bố theo cấp bậc</div>
+      <div class="card-body"><canvas id="rankChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-pie-chart"></i> Phân bố theo giới tính</div>
+      <div class="card-body"><canvas id="genderChart" height="220"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-warning-subtle">
+        <i class="bi bi-exclamation-triangle"></i> Cảnh báo thăng quân hàm
+        <span class="badge text-bg-danger">{{ rank_alerts_total }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if rank_alerts %}
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead><tr><th>Họ và tên</th><th>Cấp bậc hiện tại</th><th>Dự kiến lên</th><th>Thời điểm</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+          {% for p, rf in rank_alerts %}
+            <tr>
+              <td><a href="{{ url_for('personnel.view', category=p.category, person_id=p.id) }}">{{ p.full_name }}</a></td>
+              <td>{{ p.rank }}</td>
+              <td>{{ rf.next_rank }}</td>
+              <td>{{ rf.expected_date.strftime('%d/%m/%Y') if rf.expected_date }}</td>
+              <td>
+                {% if rf.status == 'overdue' %}
+                  <span class="badge badge-status-overdue">Quá hạn</span>
+                {% else %}
+                  <span class="badge badge-status-upcoming">Sắp đến hạn</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="text-muted p-3 mb-0">Không có trường hợp nào cần cảnh báo.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-info-subtle">
+        <i class="bi bi-exclamation-triangle"></i> Cảnh báo chuyển Đảng chính thức
+        <span class="badge text-bg-danger">{{ party_alerts_total }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if party_alerts %}
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead><tr><th>Họ và tên</th><th>Ngày vào Đảng (dự bị)</th><th>Dự kiến chính thức</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+          {% for p, pf in party_alerts %}
+            <tr>
+              <td><a href="{{ url_for('personnel.view', category=p.category, person_id=p.id) }}">{{ p.full_name }}</a></td>
+              <td>{{ p.party_join_date.strftime('%d/%m/%Y') if p.party_join_date }}</td>
+              <td>{{ pf.expected_date.strftime('%d/%m/%Y') if pf.expected_date }}</td>
+              <td>
+                {% if pf.status == 'overdue' %}
+                  <span class="badge badge-status-overdue">Quá hạn</span>
+                {% else %}
+                  <span class="badge badge-status-upcoming">Sắp đến hạn</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="text-muted p-3 mb-0">Không có trường hợp nào cần cảnh báo.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const rankLabels = {{ rank_distribution.keys() | list | tojson }};
+const rankData = {{ rank_distribution.values() | list | tojson }};
+new Chart(document.getElementById('rankChart'), {
+  type: 'bar',
+  data: { labels: rankLabels, datasets: [{ label: 'Số lượng', data: rankData, backgroundColor: '#2f6b3a' }] },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+const genderLabels = {{ gender_distribution.keys() | list | tojson }};
+const genderData = {{ gender_distribution.values() | list | tojson }};
+new Chart(document.getElementById('genderChart'), {
+  type: 'doughnut',
+  data: { labels: genderLabels, datasets: [{ data: genderData, backgroundColor: ['#2a5ca8', '#b5842c', '#7e2424'] }] },
+});
+</script>
+{% endblock %}

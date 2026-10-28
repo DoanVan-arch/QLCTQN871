@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}{{ category_label }}{% endblock %}
+
+{% macro sort_link(col, label) -%}
+  {% set new_dir = 'desc' if (sort_by == col and sort_dir == 'asc') else 'asc' %}
+  <a class="table-sort-link" href="{{ url_for('personnel.index', category=category, q=q, rank=rank_filter, gender=gender_filter, education_level=education_filter, party_status=party_filter, sort_by=col, sort_dir=new_dir, view=view_mode) }}">
+    {{ label }}
+    {% if sort_by == col %}
+      <i class="bi bi-caret-{{ 'up' if sort_dir == 'asc' else 'down' }}-fill small"></i>
+    {% endif %}
+  </a>
+{%- endmacro %}
+
+{% block content %}
+{% set is_archive = (category == 'ho_so_luu') %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h3 class="mb-0">
+    <i class="bi {{ 'bi-archive' if is_archive else 'bi-people' }}"></i>
+    {{ category_label }} <span class="badge text-bg-secondary">{{ pagination.total }}</span>
+  </h3>
+  <div class="d-flex flex-wrap gap-2">
+    <div class="btn-group" role="group" aria-label="Chế độ hiển thị">
+      <a href="{{ url_for('personnel.index', category=category, q=q, rank=rank_filter, gender=gender_filter, education_level=education_filter, party_status=party_filter, sort_by=sort_by, sort_dir=sort_dir, view='full') }}"
+         class="btn btn-sm {{ 'btn-primary' if view_mode == 'full' else 'btn-outline-primary' }}">
+        <i class="bi bi-table"></i> Đầy đủ
+      </a>
+      <a href="{{ url_for('personnel.index', category=category, q=q, rank=rank_filter, gender=gender_filter, education_level=education_filter, party_status=party_filter, sort_by=sort_by, sort_dir=sort_dir, view='compact') }}"
+         class="btn btn-sm {{ 'btn-primary' if view_mode == 'compact' else 'btn-outline-primary' }}">
+        <i class="bi bi-list-ul"></i> Rút gọn
+      </a>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-dark" id="toggleFilterRowBtn">
+      <i class="bi bi-funnel"></i> Ẩn/hiện bộ lọc
+    </button>
+    <a href="{{ url_for('personnel.export_excel', category=category, q=q, rank=rank_filter, gender=gender_filter, education_level=education_filter, party_status=party_filter) }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+    </a>
+    {% if current_user.can_edit %}
+    <a href="{{ url_for('personnel.import_excel', category=category) }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-upload"></i> Nhập Excel
+    </a>
+    <a href="{{ url_for('personnel.create', category=category) }}" class="btn btn-sm btn-success">
+      <i class="bi bi-plus-lg"></i> Thêm {{ category_singular }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if is_archive %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle"></i> Đây là nơi lưu các hồ sơ đã bị xóa khỏi các mục quản lý khác. Bạn có thể
+  <strong>khôi phục</strong> hồ sơ về danh mục gốc hoặc <strong>xóa vĩnh viễn</strong>.
+</div>
+{% endif %}
+
+<div class="card mb-3" id="filterCard">
+  <div class="card-body">
+    <form method="get" class="row g-2">
+      <input type="hidden" name="view" value="{{ view_mode }}">
+      <div class="col-md-3">
+        <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="Tìm theo họ tên, SĐT, CCCD, đơn vị...">
+      </div>
+      <div class="col-md-2">
+        <select name="rank" class="form-select">
+          <option value="">-- Cấp bậc --</option>
+          {% for r in rank_choices %}
+          <option value="{{ r }}" {% if rank_filter == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="gender" class="form-select">
+          <option value="">-- Giới tính --</option>
+          {% for g in gender_choices %}
+          <option value="{{ g }}" {% if gender_filter == g %}selected{% endif %}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="education_level" class="form-select">
+          <option value="">-- Bậc học --</option>
+          {% for e in education_choices %}
+          <option value="{{ e }}" {% if education_filter == e %}selected{% endif %}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="party_status" class="form-select">
+          <option value="">-- Trạng thái Đảng --</option>
+          <option value="official" {% if party_filter == 'official' %}selected{% endif %}>Đảng viên chính thức</option>
+          <option value="probationary" {% if party_filter == 'probationary' %}selected{% endif %}>Đảng viên dự bị</option>
+          <option value="none" {% if party_filter == 'none' %}selected{% endif %}>Chưa vào Đảng</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('personnel.bulk_delete', category=category) }}" id="bulkForm"
+      onsubmit="return confirm('{{ 'Xóa VĨNH VIỄN các hồ sơ đã chọn? Không thể hoàn tác!' if is_archive else 'Chuyển các hồ sơ đã chọn vào mục Hồ sơ lưu?' }}');">
+{% if current_user.can_edit %}
+<div class="d-flex align-items-center gap-2 mb-2">
+  <span class="small text-muted" id="selectedCountLabel">Đã chọn: 0</span>
+  <button type="submit" class="btn btn-sm btn-outline-danger" id="bulkDeleteBtn" disabled>
+    <i class="bi {{ 'bi-trash3' if is_archive else 'bi-trash' }}"></i>
+    {{ 'Xóa vĩnh viễn đã chọn' if is_archive else 'Chuyển vào Hồ sơ lưu đã chọn' }}
+  </button>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 excel-table" id="personnelTable">
+      <thead class="table-light">
+        <tr>
+          {% if current_user.can_edit %}
+          <th style="width:32px;"><input type="checkbox" class="form-check-input" id="selectAllCheckbox"></th>
+          {% endif %}
+          {% for field, label, kind in visible_fields %}
+          <th>{{ sort_link(field, label) }}</th>
+          {% endfor %}
+          <th>Cảnh báo</th>
+          <th class="text-end">Thao tác</th>
+        </tr>
+        <tr class="excel-filter-row">
+          {% if current_user.can_edit %}
+          <th></th>
+          {% endif %}
+          {% for field, label, kind in visible_fields %}
+          <th><input type="text" class="form-control form-control-sm col-filter" data-col="{{ loop.index0 }}" placeholder="Lọc..."></th>
+          {% endfor %}
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in items %}
+        <tr>
+          {% if current_user.can_edit %}
+          <td><input type="checkbox" class="form-check-input row-checkbox" name="ids" value="{{ p.id }}"></td>
+          {% endif %}
+          {% for field, label, kind in visible_fields %}
+          <td>
+            {% set value = p|attr(field) %}
+            {% if field == 'full_name' %}
+              <a href="{{ url_for('personnel.view', category=category, person_id=p.id) }}">{{ p.full_name }}</a>
+            {% elif kind == 'date' %}
+              {{ value.strftime('%d/%m/%Y') if value else '' }}
+            {% else %}
+              {{ value or '' }}
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td>
+            {% set rf = forecasts[p.id].rank %}
+            {% set pf = forecasts[p.id].party %}
+            {% if rf.status == 'overdue' %}<span class="badge badge-status-overdue" title="Quá hạn thăng {{ rf.next_rank }}">Quá hạn CB</span>{% endif %}
+            {% if rf.status == 'upcoming' %}<span class="badge badge-status-upcoming" title="Sắp đến hạn thăng {{ rf.next_rank }}">Sắp lên CB</span>{% endif %}
+            {% if pf.status == 'overdue' %}<span class="badge badge-status-overdue">Quá hạn Đảng</span>{% endif %}
+            {% if pf.status == 'upcoming' %}<span class="badge badge-status-upcoming">Sắp CT Đảng</span>{% endif %}
+          </td>
+          <td class="text-end text-nowrap">
+            <a href="{{ url_for('personnel.view', category=category, person_id=p.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+            {% if current_user.can_edit %}
+              {% if is_archive %}
+              <button type="submit" formaction="{{ url_for('personnel.restore', category=category, person_id=p.id) }}"
+                      formnovalidate class="btn btn-sm btn-outline-success"
+                      onclick="return confirm('Khôi phục hồ sơ này về danh mục gốc?');">
+                <i class="bi bi-arrow-counterclockwise"></i> Khôi phục
+              </button>
+              <button type="submit" formaction="{{ url_for('personnel.delete', category=category, person_id=p.id) }}"
+                      formnovalidate class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Xóa VĨNH VIỄN hồ sơ này? Không thể hoàn tác!');">
+                <i class="bi bi-trash3"></i> Xóa hẳn
+              </button>
+              {% else %}
+              <a href="{{ url_for('personnel.edit', category=category, person_id=p.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+              <button type="submit" formaction="{{ url_for('personnel.delete', category=category, person_id=p.id) }}"
+                      formnovalidate class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Chuyển hồ sơ này vào mục Hồ sơ lưu?');">
+                <i class="bi bi-trash"></i>
+              </button>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ visible_fields|length + 3 }}" class="text-center text-muted py-4">Không có dữ liệu phù hợp.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</form>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    {% for page_num in pagination.iter_pages() %}
+      {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('personnel.index', category=category, q=q, rank=rank_filter, gender=gender_filter, education_level=education_filter, party_status=party_filter, sort_by=sort_by, sort_dir=sort_dir, page=page_num, view=view_mode) }}">{{ page_num }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const table = document.getElementById('personnelTable');
+  if (!table) return;
+  const filters = table.querySelectorAll('.col-filter');
+  const tbody = table.querySelector('tbody');
+  function applyFilters() {
+    const activeFilters = Array.from(filters)
+      .map((input) => ({ col: parseInt(input.dataset.col, 10), value: input.value.trim().toLowerCase() }))
+      .filter((f) => f.value);
+    Array.from(tbody.querySelectorAll('tr')).forEach((row) => {
+      const cells = row.children;
+      const match = activeFilters.every((f) => {
+        const cell = cells[f.col];
+        if (!cell) return true;
+        return cell.textContent.toLowerCase().includes(f.value);
+      });
+      row.style.display = match ? '' : 'none';
+    });
+  }
+  filters.forEach((input) => input.addEventListener('input', applyFilters));
+
+  const filterRow = table.querySelector('.excel-filter-row');
+  const toggleBtn = document.getElementById('toggleFilterRowBtn');
+  const storageKey = 'personnelTable_filterRowHidden';
+  function applyVisibility() {
+    const hidden = localStorage.getItem(storageKey) === '1';
+    filterRow.style.display = hidden ? 'none' : '';
+  }
+  applyVisibility();
+  toggleBtn.addEventListener('click', () => {
+    const hiddenNow = filterRow.style.display === 'none';
+    filterRow.style.display = hiddenNow ? '' : 'none';
+    localStorage.setItem(storageKey, hiddenNow ? '0' : '1');
+  });
+
+  const selectAll = document.getElementById('selectAllCheckbox');
+  const rowCheckboxes = table.querySelectorAll('.row-checkbox');
+  const countLabel = document.getElementById('selectedCountLabel');
+  const bulkBtn = document.getElementById('bulkDeleteBtn');
+  function updateCount() {
+    const checked = table.querySelectorAll('.row-checkbox:checked').length;
+    if (countLabel) countLabel.textContent = 'Đã chọn: ' + checked;
+    if (bulkBtn) bulkBtn.disabled = checked === 0;
+  }
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      rowCheckboxes.forEach((cb) => {
+        if (cb.closest('tr').style.display !== 'none') cb.checked = selectAll.checked;
+      });
+      updateCount();
+    });
+  }
+  rowCheckboxes.forEach((cb) => cb.addEventListener('change', updateCount));
+  updateCount();
+})();
+</script>
+{% endblock %}

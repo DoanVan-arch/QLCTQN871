@@ -1,0 +1,215 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ 'Thêm' if is_new else 'Sửa' }} hồ sơ - {{ category_label }}{% endblock %}
+{% block content %}
+<h3 class="mb-3">
+  <i class="bi bi-{{ 'plus-circle' if is_new else 'pencil-square' }}"></i>
+  {{ 'Thêm mới' if is_new else 'Chỉnh sửa' }} - {{ category_label }}
+</h3>
+
+<form method="post" novalidate enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  {{ form.category(type="hidden") }}
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-person-vcard"></i> Thông tin cá nhân</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          {{ form.full_name.label(class_="form-label") }}
+          {{ form.full_name(class_="form-control") }}
+        </div>
+        <div class="col-md-2">
+          {{ form.gender.label(class_="form-label") }}
+          {{ form.gender(class_="form-select") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.religion.label(class_="form-label") }}
+          {{ form.religion(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.ethnicity.label(class_="form-label") }}
+          {{ form.ethnicity(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.date_of_birth.label(class_="form-label") }}
+          {{ form.date_of_birth(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.enlistment_date.label(class_="form-label") }}
+          {{ form.enlistment_date(class_="form-control", type="date") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-stars"></i> Cấp bậc - Chức vụ</h6>
+      <div class="row g-3">
+        <div class="col-md-3">
+          {{ form.rank.label(class_="form-label") }}
+          {{ form.rank(class_="form-select") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.rank_date.label(class_="form-label") }}
+          {{ form.rank_date(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.position.label(class_="form-label") }}
+          {{ form.position(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.position_date.label(class_="form-label") }}
+          {{ form.position_date(class_="form-control", type="date") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-flag"></i> Đoàn - Đảng</h6>
+      <div class="row g-3">
+        <div class="col-md-3">
+          {{ form.youth_union_date.label(class_="form-label") }}
+          {{ form.youth_union_date(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.youth_union_cell.label(class_="form-label") }}
+          {{ form.youth_union_cell(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.party_sympathy_class.label(class_="form-label") }}
+          {{ form.party_sympathy_class(class_="form-select") }}
+        </div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3">
+          {{ form.party_join_date.label(class_="form-label") }}
+          {{ form.party_join_date(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.party_cell.label(class_="form-label") }}
+          {{ form.party_cell(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.party_official_date.label(class_="form-label") }}
+          {{ form.party_official_date(class_="form-control", type="date") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-geo-alt"></i> Nơi ở - Quê quán</h6>
+      <div class="row g-3">
+        <div class="col-md-3">
+          {{ form.unit_before_enrollment.label(class_="form-label") }}
+          {{ form.unit_before_enrollment(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.current_residence.label(class_="form-label") }}
+          {{ form.current_residence(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.registered_residence.label(class_="form-label") }}
+          {{ form.registered_residence(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.hometown.label(class_="form-label") }}
+          {{ form.hometown(class_="form-control") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-mortarboard"></i> Quá trình học tập</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          {{ form.school_name.label(class_="form-label") }}
+          {{ form.school_name(class_="form-control") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.major.label(class_="form-label") }}
+          {{ form.major(class_="form-control") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.education_level.label(class_="form-label") }}
+          {{ form.education_level(class_="form-select") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.enrollment_date.label(class_="form-label") }}
+          {{ form.enrollment_date(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.reception_date.label(class_="form-label") }}
+          {{ form.reception_date(class_="form-control", type="date") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.graduation_date.label(class_="form-label") }}
+          {{ form.graduation_date(class_="form-control", type="date") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3 detail-section">
+    <div class="card-body">
+      <h6><i class="bi bi-award"></i> Khen thưởng - Kỷ luật - Liên hệ</h6>
+      <div class="row g-3">
+        <div class="col-md-6">
+          {{ form.rewards.label(class_="form-label") }}
+          {{ form.rewards(class_="form-control", rows=2) }}
+        </div>
+        <div class="col-md-6">
+          {{ form.discipline.label(class_="form-label") }}
+          {{ form.discipline(class_="form-control", rows=2) }}
+        </div>
+        <div class="col-md-6">
+          {{ form.reward_evidence.label(class_="form-label") }}
+          {{ form.reward_evidence(class_="form-control") }}
+          <div class="form-text">Chấp nhận ảnh (jpg, png, gif) hoặc PDF, tối đa 10MB. Không bắt buộc.</div>
+          {% if person and person.reward_evidence_file %}
+          <div class="mt-2 d-flex align-items-center gap-2">
+            <a href="{{ url_for('static', filename='uploads/rewards/' + person.reward_evidence_file) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-paperclip"></i> Xem file hiện tại
+            </a>
+            <div class="form-check mb-0">
+              {{ form.remove_reward_evidence(class_="form-check-input") }}
+              {{ form.remove_reward_evidence.label(class_="form-check-label") }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="col-md-3">
+          {{ form.citizen_id.label(class_="form-label") }}
+          {{ form.citizen_id(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.officer_id.label(class_="form-label") }}
+          {{ form.officer_id(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.phone.label(class_="form-label") }}
+          {{ form.phone(class_="form-control") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.contact_person.label(class_="form-label") }}
+          {{ form.contact_person(class_="form-control") }}
+        </div>
+        <div class="col-md-12">
+          {{ form.notes.label(class_="form-label") }}
+          {{ form.notes(class_="form-control", rows=2) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 mb-5">
+    {{ form.submit(class_="btn btn-success px-4") }}
+    <a href="{{ url_for('personnel.index', category=category) }}" class="btn btn-outline-secondary px-4">Hủy</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Cấu hình hiển thị{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-sliders"></i> Cấu hình hiển thị dữ liệu</h3>
+
+<div class="card">
+  <div class="card-header bg-white">Chọn các trường hiển thị ở chế độ "Rút gọn" trong các bảng danh sách</div>
+  <div class="card-body">
+    <form method="post">
+      <div class="row row-cols-1 row-cols-md-3 g-2 mb-3">
+        {% for field, label, kind in all_fields %}
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="fields" value="{{ field }}" id="field_{{ field }}"
+              {% if field in compact_fields %}checked{% endif %}
+              {% if field == 'full_name' %}disabled checked{% endif %}>
+            <label class="form-check-label" for="field_{{ field }}">{{ label }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="fields" value="full_name">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu cấu hình</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

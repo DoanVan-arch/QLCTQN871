@@ -1,0 +1,145 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ person.full_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0"><i class="bi bi-person-badge"></i> {{ person.full_name }}</h3>
+  <div>
+    <a href="{{ url_for('personnel.index', category=category) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Danh sách</a>
+    {% if current_user.can_edit %}
+    <a href="{{ url_for('personnel.edit', category=category, person_id=person.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-2 mb-3">
+  {% if rank_forecast_info.status in ('overdue', 'upcoming') %}
+  <div class="col-md-6">
+    <div class="alert {{ 'alert-danger' if rank_forecast_info.status == 'overdue' else 'alert-warning' }} mb-0">
+      <i class="bi bi-exclamation-triangle"></i>
+      {% if rank_forecast_info.status == 'overdue' %}
+        Đã <strong>quá hạn</strong> xét thăng quân hàm <strong>{{ rank_forecast_info.next_rank }}</strong> (dự kiến {{ rank_forecast_info.expected_date.strftime('%d/%m/%Y') }})
+      {% else %}
+        <strong>Sắp đến hạn</strong> xét thăng quân hàm <strong>{{ rank_forecast_info.next_rank }}</strong> vào {{ rank_forecast_info.expected_date.strftime('%d/%m/%Y') }}
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if party_forecast_info.status in ('overdue', 'upcoming') %}
+  <div class="col-md-6">
+    <div class="alert {{ 'alert-danger' if party_forecast_info.status == 'overdue' else 'alert-warning' }} mb-0">
+      <i class="bi bi-exclamation-triangle"></i>
+      {% if party_forecast_info.status == 'overdue' %}
+        Đã <strong>quá hạn</strong> chuyển Đảng chính thức (dự kiến {{ party_forecast_info.expected_date.strftime('%d/%m/%Y') }})
+      {% else %}
+        <strong>Sắp đến hạn</strong> chuyển Đảng chính thức vào {{ party_forecast_info.expected_date.strftime('%d/%m/%Y') }}
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% macro row(label, value) -%}
+<div class="col-md-3"><strong>{{ label }}:</strong> {{ value if value else '—' }}</div>
+{%- endmacro %}
+{% macro drow(label, value) -%}
+<div class="col-md-3"><strong>{{ label }}:</strong> {{ value.strftime('%d/%m/%Y') if value else '—' }}</div>
+{%- endmacro %}
+
+<div class="card mb-3 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-person-vcard"></i> Thông tin cá nhân</h6>
+    <div class="row g-2">
+      {{ row('Giới tính', person.gender) }}
+      {{ row('Tôn giáo', person.religion) }}
+      {{ row('Dân tộc', person.ethnicity) }}
+      {{ drow('Ngày sinh', person.date_of_birth) }}
+      {{ drow('Ngày nhập ngũ', person.enlistment_date) }}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-stars"></i> Cấp bậc - Chức vụ</h6>
+    <div class="row g-2">
+      {{ row('Cấp bậc', person.rank) }}
+      {{ drow('TG nhận cấp bậc', person.rank_date) }}
+      {{ row('Chức vụ', person.position) }}
+      {{ drow('TG nhận chức vụ', person.position_date) }}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-flag"></i> Đoàn - Đảng</h6>
+    <div class="row g-2">
+      {{ drow('TG vào Đoàn', person.youth_union_date) }}
+      {{ row('Chi đoàn', person.youth_union_cell) }}
+      {{ row('Đã học lớp cảm tình Đảng', 'Có' if person.party_sympathy_class else 'Không') }}
+      <div class="col-md-3"></div>
+      {{ drow('TG vào Đảng (dự bị)', person.party_join_date) }}
+      {{ row('Chi bộ', person.party_cell) }}
+      {{ drow('TG chính thức', person.party_official_date) }}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-geo-alt"></i> Nơi ở - Quê quán</h6>
+    <div class="row g-2">
+      {{ row('Đơn vị trước khi nhập học', person.unit_before_enrollment) }}
+      {{ row('Nơi ở', person.current_residence) }}
+      {{ row('Trú quán', person.registered_residence) }}
+      {{ row('Quê quán', person.hometown) }}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-mortarboard"></i> Quá trình học tập</h6>
+    <div class="row g-2">
+      {{ row('Tên trường theo học', person.school_name) }}
+      {{ row('Chuyên ngành', person.major) }}
+      {{ row('Bậc học', person.education_level) }}
+      {{ drow('TG nhập học', person.enrollment_date) }}
+      {{ drow('TG tiếp nhận', person.reception_date) }}
+      {{ drow('TG tốt nghiệp', person.graduation_date) }}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-5 detail-section">
+  <div class="card-body">
+    <h6><i class="bi bi-award"></i> Khen thưởng - Kỷ luật - Liên hệ</h6>
+    <div class="row g-2">
+      <div class="col-md-6"><strong>Khen thưởng:</strong> {{ person.rewards or '—' }}</div>
+      <div class="col-md-6"><strong>Kỷ luật:</strong> {{ person.discipline or '—' }}</div>
+      <div class="col-md-12">
+        <strong>File minh chứng khen thưởng:</strong>
+        {% if person.reward_evidence_file %}
+          {% set file_url = url_for('static', filename='uploads/rewards/' + person.reward_evidence_file) %}
+          {% if person.reward_evidence_file.lower().endswith('.pdf') %}
+            <a href="{{ file_url }}" target="_blank" class="ms-2"><i class="bi bi-file-earmark-pdf text-danger"></i> Xem file PDF</a>
+          {% else %}
+            <div class="mt-2">
+              <a href="{{ file_url }}" target="_blank">
+                <img src="{{ file_url }}" alt="Minh chứng khen thưởng" class="img-thumbnail" style="max-height: 160px;">
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <span class="text-muted">— Chưa có —</span>
+        {% endif %}
+      </div>
+      {{ row('Số CCCD', person.citizen_id) }}
+      {{ row('CMSQ', person.officer_id) }}
+      {{ row('Số điện thoại', person.phone) }}
+      {{ row('Người báo tin', person.contact_person) }}
+      <div class="col-md-12"><strong>Ghi chú:</strong> {{ person.notes or '—' }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

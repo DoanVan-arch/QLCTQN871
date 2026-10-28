@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Nhập dữ liệu Excel - {{ category_label }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0"><i class="bi bi-file-earmark-excel"></i> Nhập dữ liệu từ Excel - {{ category_label }}</h3>
+  <a href="{{ url_for('personnel.index', category=category) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <ol class="mb-3">
+      <li>Tải file mẫu Excel bên dưới, điền dữ liệu đúng theo tiêu đề cột.</li>
+      <li>Ngày tháng nhập theo định dạng <code>dd/mm/yyyy</code> (ví dụ: 25/03/2020).</li>
+      <li>Chọn file đã điền và bấm "Nhập dữ liệu". Hệ thống sẽ thêm mới các hồ sơ hợp lệ.</li>
+    </ol>
+    <a href="{{ url_for('personnel.import_template', category=category) }}" class="btn btn-outline-success mb-3">
+      <i class="bi bi-download"></i> Tải file mẫu Excel
+    </a>
+
+    <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+      <div class="col-md-8">
+        <label class="form-label">Chọn file Excel (.xlsx)</label>
+        <input type="file" class="form-control" name="excel_file" accept=".xlsx" required>
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-success w-100"><i class="bi bi-upload"></i> Nhập dữ liệu</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
