@@ -7,6 +7,7 @@ from app.extensions import db
 from app.forms import UserForm
 from app.models import User
 from app.users import bp
+from app.utils.activity import log_activity
 
 
 @bp.route("/")
@@ -37,6 +38,7 @@ def create():
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
+            log_activity("user_create", target=user.username, details=f"Vai trò: {user.role}")
             flash("Đã tạo tài khoản mới thành công.", "success")
             return redirect(url_for("users.index"))
     return render_template("users/form.html", form=form, is_new=True)
@@ -60,6 +62,7 @@ def edit(user_id):
             if form.password.data:
                 user.set_password(form.password.data)
             db.session.commit()
+            log_activity("user_update", target=user.username, details=f"Vai trò: {user.role}; Hoạt động: {'có' if user.is_active_account else 'khóa'}" + ("; Đổi mật khẩu" if form.password.data else ""))
             flash("Đã cập nhật tài khoản.", "success")
             return redirect(url_for("users.index"))
     return render_template("users/form.html", form=form, is_new=False, user=user)
@@ -73,7 +76,9 @@ def delete(user_id):
     if user.id == current_user.id:
         flash("Bạn không thể tự xóa chính tài khoản đang đăng nhập.", "danger")
     else:
+        username = user.username
         db.session.delete(user)
         db.session.commit()
+        log_activity("user_delete", target=username)
         flash("Đã xóa tài khoản.", "success")
     return redirect(url_for("users.index"))

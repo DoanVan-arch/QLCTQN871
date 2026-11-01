@@ -109,6 +109,7 @@ PERSONNEL_LIST_FIELDS = [
     ("position", "Chức vụ", "text"),
     ("position_date", "TG nhận chức vụ", "date"),
     ("youth_union_date", "TG vào Đoàn", "date"),
+    ("party_sympathy_class", "Đã học cảm tình Đảng", "bool"),
     ("party_join_date", "TG vào Đảng", "date"),
     ("party_official_date", "TG chính thức", "date"),
     ("school_name", "Trường theo học", "text"),

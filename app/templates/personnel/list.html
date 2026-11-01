@@ -158,6 +158,8 @@
               <a href="{{ url_for('personnel.view', category=category, person_id=p.id) }}">{{ p.full_name }}</a>
             {% elif kind == 'date' %}
               {{ value.strftime('%d/%m/%Y') if value else '' }}
+            {% elif kind == 'bool' %}
+              {% if value %}<span class="badge text-bg-success">Có</span>{% else %}<span class="badge text-bg-secondary">Không</span>{% endif %}
             {% else %}
               {{ value or '' }}
             {% endif %}

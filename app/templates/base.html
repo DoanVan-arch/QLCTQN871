@@ -40,6 +40,9 @@
       <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('settings.') %}active{% endif %}" href="{{ url_for('settings.index') }}" title="Cấu hình">
         <i class="bi bi-sliders"></i><span class="sidebar-label">Cấu hình</span>
       </a>
+      <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('logs.') %}active{% endif %}" href="{{ url_for('logs.index') }}" title="Nhật ký hoạt động">
+        <i class="bi bi-journal-text"></i><span class="sidebar-label">Nhật ký hoạt động</span>
+      </a>
       {% endif %}
     </nav>
   </aside>

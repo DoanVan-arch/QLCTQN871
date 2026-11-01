@@ -37,6 +37,19 @@ def create_app(config_class=Config):
     app.register_blueprint(users_bp)
     app.register_blueprint(settings_bp)
 
+    from app.logs import bp as logs_bp
+
+    app.register_blueprint(logs_bp)
+
+    from datetime import timedelta
+
+    @app.template_filter("localtime")
+    def localtime_filter(value, fmt="%d/%m/%Y %H:%M:%S"):
+        """Doi gio UTC luu trong CSDL sang gio Viet Nam (UTC+7)."""
+        if not value:
+            return ""
+        return (value + timedelta(hours=7)).strftime(fmt)
+
     from app.utils.constants import CATEGORY_CHOICES, ROLE_LABELS
 
     @app.context_processor

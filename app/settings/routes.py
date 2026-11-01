@@ -11,6 +11,7 @@ from app.utils.constants import (
     PERSONNEL_LIST_FIELDS,
     SETTING_COMPACT_FIELDS,
 )
+from app.utils.activity import log_activity
 from app.utils.uploads import delete_evidence_file
 
 CONFIRM_PHRASE = "XOA HET DU LIEU"
@@ -25,6 +26,7 @@ def index():
         if "full_name" not in selected:
             selected.insert(0, "full_name")
         AppSetting.set_value(SETTING_COMPACT_FIELDS, selected)
+        log_activity("settings_update", target="Hiển thị rút gọn", details=", ".join(selected))
         flash("Đã lưu cấu hình hiển thị rút gọn.", "success")
         return redirect(url_for("settings.index"))
 
@@ -54,6 +56,8 @@ def wipe_data():
         delete_evidence_file(person.reward_evidence_file)
         db.session.delete(person)
     db.session.commit()
+    log_activity("data_wipe", target=f"{count} hồ sơ")
+
 
     flash(f"Đã xóa vĩnh viễn toàn bộ {count} hồ sơ nhân sự trong hệ thống.", "success")
     return redirect(url_for("settings.index"))

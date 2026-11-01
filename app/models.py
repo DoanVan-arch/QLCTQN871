@@ -177,3 +177,22 @@ class Personnel(db.Model):
 
     def __repr__(self):
         return f"<Personnel {self.full_name}>"
+
+
+class ActivityLog(db.Model):
+    """Nhat ky hoat dong cua nguoi dung (chi Admin duoc xem)."""
+
+    __tablename__ = "activity_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    # Luu ca user_id va username de van giu duoc lich su khi tai khoan bi xoa
+    user_id = db.Column(db.Integer, nullable=True, index=True)
+    username = db.Column(db.String(80), nullable=True)
+    action = db.Column(db.String(50), nullable=False, index=True)
+    target = db.Column(db.String(255), nullable=True)
+    details = db.Column(db.Text, nullable=True)
+    ip_address = db.Column(db.String(64), nullable=True)
+
+    def __repr__(self):
+        return f"<ActivityLog {self.username} {self.action}>"

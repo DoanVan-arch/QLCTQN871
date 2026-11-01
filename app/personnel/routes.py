@@ -32,6 +32,7 @@ from app.utils.constants import (
     SETTING_COMPACT_FIELDS,
 )
 from app.utils.excel import build_import_template, export_personnel_to_excel, parse_personnel_excel
+from app.utils.activity import log_activity
 from app.utils.forecast import party_official_forecast, rank_forecast
 from app.utils.uploads import delete_evidence_file, save_evidence_file
 
@@ -47,6 +48,7 @@ SORTABLE_COLUMNS = {
     "position": Personnel.position,
     "position_date": Personnel.position_date,
     "youth_union_date": Personnel.youth_union_date,
+    "party_sympathy_class": Personnel.party_sympathy_class,
     "party_join_date": Personnel.party_join_date,
     "party_official_date": Personnel.party_official_date,
     "school_name": Personnel.school_name,
@@ -180,6 +182,7 @@ def create(category):
         person.updated_by = current_user.id
         db.session.add(person)
         db.session.commit()
+        log_activity("personnel_create", target=f"#{person.id} {person.full_name}", details=f"Danh mục: {CATEGORY_LABELS.get(category, category)}")
         flash("Đã thêm hồ sơ mới thành công.", "success")
         return redirect(url_for("personnel.index", category=category))
     return render_template(
@@ -214,6 +217,8 @@ def edit(category, person_id):
     person = Personnel.query.filter_by(category=category, id=person_id).first_or_404()
     form = PersonnelForm(obj=person)
     if form.validate_on_submit():
+        tracked = [c.name for c in Personnel.__table__.columns if c.name not in ("updated_at", "updated_by")]
+        before = {name: getattr(person, name) for name in tracked}
         form.populate_obj(person)
         person.category = category
         person.party_sympathy_class = form.party_sympathy_class.data == "Có"
@@ -228,7 +233,13 @@ def edit(category, person_id):
             person.reward_evidence_file = new_file
 
         person.updated_by = current_user.id
+        changes = [
+            (form[name].label.text if name in form else name)
+            for name in tracked
+            if getattr(person, name) != before[name]
+        ]
         db.session.commit()
+        log_activity("personnel_update", target=f"#{person.id} {person.full_name}", details=f"Thay đổi: {', '.join(changes) if changes else 'không có'}")
         flash("Đã cập nhật hồ sơ.", "success")
         return redirect(url_for("personnel.view", category=category, person_id=person.id))
 
@@ -254,8 +265,10 @@ def delete(category, person_id):
     if category == CATEGORY_ARCHIVE:
         # Da nam trong Ho so luu -> xoa vinh vien that su
         delete_evidence_file(person.reward_evidence_file)
+        target = f"#{person.id} {person.full_name}"
         db.session.delete(person)
         db.session.commit()
+        log_activity("personnel_delete", target=target)
         flash("Đã xóa vĩnh viễn hồ sơ khỏi Hồ sơ lưu.", "success")
         return redirect(url_for("personnel.index", category=category))
 
@@ -265,6 +278,7 @@ def delete(category, person_id):
     person.category = CATEGORY_ARCHIVE
     person.updated_by = current_user.id
     db.session.commit()
+    log_activity("personnel_archive", target=f"#{person.id} {person.full_name}", details=f"Từ: {CATEGORY_LABELS.get(category, category)}")
     flash("Đã chuyển hồ sơ vào mục Hồ sơ lưu.", "success")
     return redirect(url_for("personnel.index", category=category))
 
@@ -282,6 +296,7 @@ def restore(category, person_id):
     person.archived_at = None
     person.updated_by = current_user.id
     db.session.commit()
+    log_activity("personnel_restore", target=f"#{person.id} {person.full_name}", details=f"Về: {CATEGORY_LABELS.get(target_category, target_category)}")
     flash("Đã khôi phục hồ sơ.", "success")
     return redirect(url_for("personnel.index", category=category))
 
@@ -301,7 +316,9 @@ def bulk_delete(category):
         for person in people:
             delete_evidence_file(person.reward_evidence_file)
             db.session.delete(person)
+        names = ", ".join(f"#{p.id} {p.full_name}" for p in people)
         db.session.commit()
+        log_activity("personnel_delete", target=f"{len(people)} hồ sơ", details=names)
         flash(f"Đã xóa vĩnh viễn {len(people)} hồ sơ khỏi Hồ sơ lưu.", "success")
         return redirect(url_for("personnel.index", category=category))
 
@@ -311,6 +328,7 @@ def bulk_delete(category):
         person.category = CATEGORY_ARCHIVE
         person.updated_by = current_user.id
     db.session.commit()
+    log_activity("personnel_archive", target=f"{len(people)} hồ sơ", details=", ".join(f"#{p.id} {p.full_name}" for p in people))
     flash(f"Đã chuyển {len(people)} hồ sơ vào mục Hồ sơ lưu.", "success")
     return redirect(url_for("personnel.index", category=category))
 
@@ -354,6 +372,7 @@ def export_excel(category):
         query = query.filter(Personnel.party_join_date.is_(None))
 
     items = query.order_by(Personnel.full_name.asc()).all()
+    log_activity("personnel_export", target=CATEGORY_LABELS.get(category, category), details=f"{len(items)} hồ sơ")
     wb = export_personnel_to_excel(items)
     buf = io.BytesIO()
     wb.save(buf)
@@ -409,6 +428,7 @@ def import_excel(category):
             db.session.add(person)
             created_count += 1
         db.session.commit()
+        log_activity("personnel_import", target=CATEGORY_LABELS.get(category, category), details=f"{created_count} hồ sơ, {len(errors)} lỗi")
 
         flash(f"Đã nhập thành công {created_count} hồ sơ.", "success")
         for err in errors[:20]:
