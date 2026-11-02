@@ -20,8 +20,8 @@
       </span>
     </div>
     <nav class="sidebar-nav">
-      <a class="sidebar-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}" title="Dashboard">
-        <i class="bi bi-speedometer2"></i><span class="sidebar-label">Dashboard</span>
+      <a class="sidebar-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}" title="Trang chủ">
+        <i class="bi bi-speedometer2"></i><span class="sidebar-label">Trang chủ</span>
       </a>
       {% for value, label in nav_categories %}
       <a class="sidebar-link {% if request.view_args and request.view_args.get('category') == value %}active{% endif %}" href="{{ url_for('personnel.index', category=value) }}" title="{{ label }}">

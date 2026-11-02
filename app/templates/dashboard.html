@@ -86,21 +86,6 @@
   {% endfor %}
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header bg-white"><i class="bi bi-bar-chart"></i> Phân bố theo cấp bậc</div>
-      <div class="card-body"><canvas id="rankChart" height="220"></canvas></div>
-    </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header bg-white"><i class="bi bi-pie-chart"></i> Phân bố theo giới tính</div>
-      <div class="card-body"><canvas id="genderChart" height="220"></canvas></div>
-    </div>
-  </div>
-</div>
-
 <div class="row g-3">
   <div class="col-lg-6">
     <div class="card h-100">
@@ -175,6 +160,21 @@
     </div>
   </div>
 </div>
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-bar-chart"></i> Phân bố theo cấp bậc</div>
+      <div class="card-body"><canvas id="rankChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white"><i class="bi bi-pie-chart"></i> Phân bố theo giới tính</div>
+      <div class="card-body"><canvas id="genderChart" height="220"></canvas></div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
